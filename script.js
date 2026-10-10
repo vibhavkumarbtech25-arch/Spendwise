@@ -901,4 +901,8 @@ function init() {
   }, 500);
 }
 
+<<<<<<< HEAD
 init();
+=======
+init();
+>>>>>>> 11e0598a5d7ff1a4f88190c0350fffaa317127cc

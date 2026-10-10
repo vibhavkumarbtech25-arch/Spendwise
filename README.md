@@ -43,5 +43,12 @@ SpendWise stores its application data in the browser's LocalStorage. Data is tie
 * Advanced spending insights
 
 ## Author
+<<<<<<< HEAD
 
 Developed as a student web development project.
+=======
+   Vibhav Kumar
+Developed as a student web development project.
+
+
+>>>>>>> 11e0598a5d7ff1a4f88190c0350fffaa317127cc
