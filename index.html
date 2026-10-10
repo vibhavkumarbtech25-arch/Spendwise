@@ -1,0 +1,262 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>SpendWise — Student Finance Manager</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" />
+  <link rel="stylesheet" href="style.css" />
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+</head>
+<body>
+  <!-- Loading splash -->
+  <div id="splash"><div class="spinner"></div><p>Loading SpendWise…</p></div>
+
+  <div class="app">
+    <!-- Sidebar / bottom nav -->
+    <aside class="sidebar">
+      <div class="brand">
+        <span class="logo">S</span>
+        <div><strong>SpendWise</strong><small>Student Finance Manager</small></div>
+      </div>
+      <nav id="nav">
+        <button class="nav-btn active" data-view="dashboard"><span>📊</span><em>Dashboard</em></button>
+        <button class="nav-btn" data-view="transactions"><span>🧾</span><em>Transactions</em></button>
+        <button class="nav-btn" data-view="goals"><span>🎯</span><em>Goals</em></button>
+        <button class="nav-btn" data-view="recurring"><span>🔁</span><em>Recurring</em></button>
+        <button class="nav-btn" data-view="settings"><span>⚙️</span><em>Settings</em></button>
+      </nav>
+      <p class="side-note">Data is stored in this browser only. Use <b>Backup</b> in Settings to keep a copy.</p>
+    </aside>
+
+    <main class="main">
+      <header class="topbar">
+        <div>
+          <h1 id="viewTitle">Dashboard</h1>
+          <p id="viewSub" class="muted">Your money at a glance</p>
+        </div>
+        <div class="top-actions">
+          <div class="month-nav" id="monthNav">
+            <button class="icon-btn" id="prevMonth" aria-label="Previous month">‹</button>
+            <input type="month" id="monthPicker" aria-label="Select month" />
+            <button class="icon-btn" id="nextMonth" aria-label="Next month">›</button>
+          </div>
+          <button class="icon-btn" id="themeBtn" aria-label="Toggle theme">🌙</button>
+          <button class="btn primary" id="addBtn">＋ <span>Add expense</span></button>
+        </div>
+      </header>
+
+      <!-- ================= DASHBOARD ================= -->
+      <section class="view active" id="view-dashboard">
+        <div class="hero-grid">
+          <div class="hero">
+            <small id="heroLabel">Spent this month</small>
+            <h2 id="heroTotal">₹0</h2>
+            <span id="heroChange" class="badge">—</span>
+          </div>
+          <div class="card stat">
+            <small>Budget left</small>
+            <strong id="statLeft">—</strong>
+            <span id="statLeftSub" class="muted"></span>
+          </div>
+          <div class="card stat">
+            <small>Daily average</small>
+            <strong id="statAvg">₹0</strong>
+            <span class="muted">per day</span>
+          </div>
+          <div class="card stat">
+            <small>Top category</small>
+            <strong id="statTop">—</strong>
+            <span id="statTopSub" class="muted"></span>
+          </div>
+        </div>
+
+        <div class="two-col">
+          <div class="card">
+            <div class="card-head">
+              <h3>Monthly budget</h3>
+              <div class="budget-input"><span>₹</span><input type="number" id="budgetInput" min="0" step="100" placeholder="Set budget" /></div>
+            </div>
+            <div id="budgetAlert" class="alert none"></div>
+            <div class="progress-row">
+              <div class="progress">
+                <div id="progressBar"></div>
+                <i style="left:75%"></i><i style="left:90%"></i>
+              </div>
+              <span id="budgetPct" class="muted"></span>
+            </div>
+            <p id="budgetMeta" class="muted small"></p>
+          </div>
+
+          <div class="card">
+            <h3>Spending insights</h3>
+            <ul id="insights" class="insights"></ul>
+          </div>
+        </div>
+
+        <div class="charts">
+          <div class="card">
+            <h3>By category</h3>
+            <div class="chart-box" id="catBox"><canvas id="catChart"></canvas><p class="empty-mini">No spending this month</p></div>
+            <div id="catLegend" class="legend"></div>
+          </div>
+          <div class="card">
+            <h3>Daily spending</h3>
+            <div class="chart-box" id="trendBox"><canvas id="trendChart"></canvas><p class="empty-mini">No spending this month</p></div>
+          </div>
+          <div class="card">
+            <h3>Last 6 months</h3>
+            <div class="chart-box" id="compareBox"><canvas id="compareChart"></canvas><p class="empty-mini">No data yet</p></div>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-head">
+            <h3>Recent transactions</h3>
+            <button class="link-btn" data-act="goto" data-view="transactions">View all →</button>
+          </div>
+          <ul id="recentList" class="tx-list"></ul>
+          <div id="recentEmpty" class="empty">
+            <div class="empty-icon">🧾</div>
+            <p>No expenses in this month yet.</p>
+            <button class="btn primary" data-act="addExpense">Add your first expense</button>
+          </div>
+        </div>
+      </section>
+
+      <!-- ================= TRANSACTIONS ================= -->
+      <section class="view" id="view-transactions">
+        <div class="card">
+          <div class="filters">
+            <input type="search" id="search" placeholder="🔍 Search title or note…" />
+            <select id="fCat"></select>
+            <label class="inline">From <input type="date" id="fFrom" /></label>
+            <label class="inline">To <input type="date" id="fTo" /></label>
+            <select id="fSort">
+              <option value="dateDesc">Newest first</option>
+              <option value="dateAsc">Oldest first</option>
+              <option value="amtDesc">Highest amount</option>
+              <option value="amtAsc">Lowest amount</option>
+            </select>
+            <button class="btn soft" id="clearFilters">Reset</button>
+          </div>
+          <p id="txSummary" class="muted small"></p>
+          <ul id="txList" class="tx-list"></ul>
+          <div id="txEmpty" class="empty">
+            <div class="empty-icon">🔎</div>
+            <p>No transactions match your filters.</p>
+          </div>
+        </div>
+      </section>
+
+      <!-- ================= GOALS ================= -->
+      <section class="view" id="view-goals">
+        <div class="card">
+          <h3>New savings goal</h3>
+          <form id="goalForm" class="form-grid">
+            <label>Goal name<input type="text" id="gName" placeholder="e.g. New laptop" maxlength="40" required /></label>
+            <label>Target (₹)<input type="number" id="gTarget" placeholder="5000" min="1" step="1" required /></label>
+            <label>Already saved (₹)<input type="number" id="gSaved" placeholder="0" min="0" step="1" /></label>
+            <label>Target date (optional)<input type="date" id="gDeadline" /></label>
+            <div class="full"><button class="btn primary" type="submit">Create goal</button></div>
+          </form>
+        </div>
+        <div id="goalList" class="goal-grid"></div>
+        <div id="goalEmpty" class="empty card">
+          <div class="empty-icon">🎯</div>
+          <p>No goals yet. Start saving for something you want!</p>
+        </div>
+      </section>
+
+      <!-- ================= RECURRING ================= -->
+      <section class="view" id="view-recurring">
+        <div class="card">
+          <h3>New recurring expense</h3>
+          <form id="recForm" class="form-grid">
+            <label>Title<input type="text" id="rTitle" placeholder="e.g. Netflix, Bus pass" maxlength="60" required /></label>
+            <label>Amount (₹)<input type="number" id="rAmount" min="0.01" step="0.01" required /></label>
+            <label>Category<select id="rCat"></select></label>
+            <label>Payment
+              <select id="rPay"><option>UPI</option><option>Cash</option><option>Card</option></select>
+            </label>
+            <label>Day of month<input type="number" id="rDay" min="1" max="31" value="1" required /></label>
+            <div class="full"><button class="btn primary" type="submit">Add recurring expense</button></div>
+          </form>
+        </div>
+        <div class="card">
+          <div class="card-head">
+            <h3>Active subscriptions &amp; bills</h3>
+            <span id="recTotal" class="badge soft"></span>
+          </div>
+          <ul id="recList" class="tx-list"></ul>
+          <div id="recEmpty" class="empty">
+            <div class="empty-icon">🔁</div>
+            <p>Nothing recurring yet. Add subscriptions or monthly passes above.</p>
+          </div>
+        </div>
+      </section>
+
+      <!-- ================= SETTINGS ================= -->
+      <section class="view" id="view-settings">
+        <div class="card">
+          <h3>Appearance</h3>
+          <div class="setting-row">
+            <div><strong>Dark mode</strong><p class="muted small">Easier on the eyes at night.</p></div>
+            <label class="switch"><input type="checkbox" id="themeSwitch" /><span></span></label>
+          </div>
+        </div>
+        <div class="card">
+          <h3>Your data</h3>
+          <p id="storageInfo" class="muted small"></p>
+          <div class="btn-row">
+            <button class="btn soft" id="exportCsv">⬇ Export CSV</button>
+            <button class="btn soft" id="backupBtn">💾 Backup (JSON)</button>
+            <button class="btn soft" id="restoreBtn">📂 Restore backup</button>
+            <input type="file" id="restoreInput" accept="application/json,.json" hidden />
+          </div>
+        </div>
+        <div class="card danger-zone">
+          <h3>Danger zone</h3>
+          <p class="muted small">Deletes all expenses, goals, recurring items and your budget from this browser.</p>
+          <button class="btn danger" id="clearAll">Delete all data</button>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <!-- Expense modal -->
+  <dialog id="expenseModal">
+    <form id="expenseForm" class="form-grid modal-form">
+      <h3 id="modalTitle" class="full">Add expense</h3>
+      <label class="full">Title<input type="text" id="eTitle" maxlength="60" placeholder="e.g. Lunch at canteen" required /></label>
+      <label>Amount (₹)<input type="number" id="eAmount" min="0.01" step="0.01" required /></label>
+      <label>Date<input type="date" id="eDate" required /></label>
+      <label>Category<select id="eCat"></select></label>
+      <label>Payment
+        <select id="ePay"><option>UPI</option><option>Cash</option><option>Card</option></select>
+      </label>
+      <label class="full">Note (optional)<input type="text" id="eNote" maxlength="100" /></label>
+      <div class="full btn-row end">
+        <button type="button" class="btn soft" id="cancelModal">Cancel</button>
+        <button type="submit" class="btn primary" id="saveBtn">Save</button>
+      </div>
+    </form>
+  </dialog>
+
+  <!-- Add-funds modal -->
+  <dialog id="fundsModal">
+    <form id="fundsForm" class="form-grid modal-form">
+      <h3 id="fundsTitle" class="full">Add funds</h3>
+      <label class="full">Amount (₹)<input type="number" id="fAmount" min="1" step="1" required /></label>
+      <div class="full btn-row end">
+        <button type="button" class="btn soft" id="cancelFunds">Cancel</button>
+        <button type="submit" class="btn primary">Add</button>
+      </div>
+    </form>
+  </dialog>
+
+  <div id="toast" class="toast" role="status" aria-live="polite"></div>
+  <script src="script.js"></script>
+</body>
+</html>
